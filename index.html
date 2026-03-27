@@ -3,61 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU Roadmap - Full Demo</title>
+    <title>MCU Live Database</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0f1014; color: #e0e0e0; font-family: 'Segoe UI', Roboto, sans-serif; padding: 40px 0; }
-        .container { max-width: 1000px; }
-        h1 { color: #f0131e; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        body { background-color: #0b0c10; color: #c5c6c7; font-family: 'Segoe UI', sans-serif; padding: 40px 0; }
+        .container { max-width: 900px; }
+        .header-section { border-bottom: 2px solid #1f2833; margin-bottom: 30px; padding-bottom: 20px; }
+        h1 { color: #66fcf1; font-weight: 800; text-transform: uppercase; margin: 0; }
         
-        .search-bar { background-color: #1c1d22; border: 1px solid #333; color: #fff; border-radius: 30px; padding: 12px 25px; margin-bottom: 40px; }
-        .search-bar:focus { background-color: #25262c; color: #fff; box-shadow: 0 0 15px rgba(240, 19, 30, 0.3); border-color: #f0131e; }
-
-        /* Phase Styling */
-        .movie-card { background: #1c1d22; border: none; margin-bottom: 12px; cursor: pointer; transition: 0.3s; border-radius: 12px; overflow: hidden; border-left: 6px solid #444; }
-        .movie-card:hover { transform: scale(1.02); background: #25262c; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .sync-panel { background: #1f2833; padding: 15px; border-radius: 12px; margin-bottom: 30px; }
+        .movie-card { background: #1f2833; border: none; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border-radius: 8px; border-left: 5px solid #66fcf1; }
+        .movie-card:hover { transform: translateX(10px); background: #45a29e; color: #0b0c10; }
         
-        .p1 { border-left-color: #00bcd4; } .p2 { border-left-color: #4caf50; } 
-        .p3 { border-left-color: #ffeb3b; } .p4 { border-left-color: #e91e63; }
-        .p5 { border-left-color: #9c27b0; } .p6 { border-left-color: #009688; }
-
-        .phase-tag { font-size: 0.75rem; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
-        .bg-p1 { background: #00bcd4; color: #000; } .bg-p2 { background: #4caf50; color: #000; }
-        .bg-p3 { background: #ffeb3b; color: #000; } .bg-p4 { background: #e91e63; color: #fff; }
-        .bg-p5 { background: #9c27b0; color: #fff; } .bg-p6 { background: #009688; color: #fff; }
-
-        /* Modal Layout */
-        .modal-content { background-color: #1c1d22; border: 1px solid #444; color: #fff; border-radius: 20px; }
-        pre { background: #000; padding: 25px; border-radius: 12px; color: #00ffcc; border: 1px solid #333; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; }
-        .btn-trailer { background: #f0131e; color: #fff; font-weight: bold; border-radius: 30px; padding: 10px 25px; }
-        .btn-trailer:hover { background: #c01118; color: #fff; }
+        pre { background: #000; padding: 20px; border-radius: 10px; color: #66fcf1; white-space: pre-wrap; border: 1px solid #45a29e; text-align: left; }
+        .modal-content { background-color: #0b0c10; color: #fff; border: 1px solid #45a29e; border-radius: 15px; }
+        .loading-spinner { display: none; margin-right: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="text-center mb-5">
-        <h1>MCU Roadmap</h1>
-        <p class="text-secondary">Explore the Infinity & Multiverse Sagas</p>
+<div class="container text-center">
+    <div class="header-section">
+        <h1>MCU Intelligence Hub</h1>
+        <p id="counterNote" class="mt-2">Connecting to Neural Link...</p>
     </div>
-    
-    <input type="text" id="movieSearch" class="form-control form-control-lg search-bar" placeholder="Search for titles, years, or phases...">
 
-    <div id="movieGrid" class="row"></div>
+    <div class="sync-panel d-flex justify-content-between align-items-center">
+        <input type="text" id="movieSearch" class="form-control bg-dark text-white border-0 w-50" placeholder="Filter roadmap...">
+        <button id="updateBtn" class="btn btn-info fw-bold" onclick="syncWithTMDB()">
+            <span class="spinner-border spinner-border-sm loading-spinner" id="spinner"></span>
+            🔄 SYNC LIVE DATA
+        </button>
+    </div>
+
+    <div id="movieGrid" class="text-start"></div>
 </div>
 
 <div class="modal fade" id="movieModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0">
-                <h4 class="modal-title" id="mTitle"></h4>
+                <h5 class="modal-title" id="mTitle"></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-0">
+            <div class="modal-body pt-0 text-center">
                 <pre id="mDetails"></pre>
-                <div class="text-center mt-3 mb-3">
-                    <a id="mLink" href="#" target="_blank" class="btn btn-trailer">Watch Official Trailer</a>
-                </div>
+                <a id="mLink" href="#" target="_blank" class="btn btn-outline-info mt-3 px-5">Watch on YouTube</a>
             </div>
         </div>
     </div>
@@ -65,66 +56,95 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const mcuData = [
-        // PHASE 1
-        { title: "Iron Man", year: 2008, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "2 hours and 6 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "Tony Stark builds a high-tech suit to escape captivity and fight evil.", trailer: "https://www.youtube.com/watch?v=8hYlB38asgnI" },
-        { title: "The Incredible Hulk", year: 2008, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "1 hour and 52 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "Bruce Banner flees the military while seeking a cure for his monstrous alter-ego.", trailer: "https://www.youtube.com/watch?v=xbqNb2PFKCQ" },
-        { title: "Iron Man 2", year: 2010, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "2 hours and 4 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "Stark faces pressure from the government and a new rival with similar tech.", trailer: "https://www.youtube.com/watch?v=wKtcmiifycU" },
-        { title: "Thor", year: 2011, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "1 hour and 55 mins", genres: "Fantasy, Action", source: "Disney+", summary: "The God of Thunder is exiled to Earth to learn humility.", trailer: "https://www.youtube.com/watch?v=JOddp-nlNvQ" },
-        { title: "Captain America: The First Avenger", year: 2011, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "2 hours and 4 mins", genres: "Action, Adventure", source: "Disney+", summary: "Steve Rogers becomes a super-soldier to fight the Nazi-backed HYDRA.", trailer: "https://www.youtube.com/watch?v=JerVrbLldXw" },
-        { title: "The Avengers", year: 2012, phase: "Phase One", pCode: "p1", rating: "PG-13", runtime: "2 hours and 23 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "Earth's mightiest heroes team up for the first time to stop Loki.", trailer: "https://www.youtube.com/watch?v=eOrNdBpGMv8" },
-        
-        // PHASE 2
-        { title: "Iron Man 3", year: 2013, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "2 hours and 10 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "Stark deals with PTSD while hunting a mysterious terrorist known as the Mandarin.", trailer: "https://www.youtube.com/watch?v=f_h95mQHAsgn" },
-        { title: "Thor: The Dark World", year: 2013, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "1 hour and 52 mins", genres: "Fantasy, Action", source: "Disney+", summary: "Thor teams up with Loki to save the universe from the Dark Elves.", trailer: "https://www.youtube.com/watch?v=npvJ9FTgZbM" },
-        { title: "Captain America: The Winter Soldier", year: 2014, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "2 hours and 16 mins", genres: "Action, Thriller", source: "Disney+", summary: "Cap uncovers a deep conspiracy within SHIELD involving his old friend Bucky.", trailer: "https://www.youtube.com/watch?v=7SlILk2WMTI" },
-        { title: "Guardians of the Galaxy", year: 2014, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "2 hours and 1 min", genres: "Sci-Fi, Comedy", source: "Disney+", summary: "A group of intergalactic outlaws must work together to stop a fanatical villain.", trailer: "https://www.youtube.com/watch?v=d96cjJhvlMA" },
-        { title: "Avengers: Age of Ultron", year: 2015, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "2 hours and 21 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "The team reunites to defeat an artificial intelligence intent on human extinction.", trailer: "https://www.youtube.com/watch?v=tmeOjFno6Do" },
-        { title: "Ant-Man", year: 2015, phase: "Phase Two", pCode: "p2", rating: "PG-13", runtime: "1 hour and 57 mins", genres: "Action, Comedy", source: "Disney+", summary: "Master thief Scott Lang gains the ability to shrink in scale to save the world.", trailer: "https://www.youtube.com/watch?v=pWdKf3MneyI" },
+    const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a'; // PASTE YOUR KEY HERE
+    const LIST_ID = '8254729'; // Dynamic MCU List ID (or use 86263 for collection)
+    let mcuData = [];
 
-        // PHASE 3 (The big one)
-        { title: "Captain America: Civil War", year: 2016, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "2 hours and 27 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "The Avengers are split into two factions over government oversight.", trailer: "https://www.youtube.com/watch?v=dKrVegVI0v4" },
-        { title: "Doctor Strange", year: 2016, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "1 hour and 55 mins", genres: "Fantasy, Adventure", source: "Disney+", summary: "A brilliant surgeon learns the mystic arts after a car accident.", trailer: "https://www.youtube.com/watch?v=HSzx-zry_sg" },
-        { title: "Spider-Man: Homecoming", year: 2017, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "2 hours and 13 mins", genres: "Action, Comedy", source: "Disney+", summary: "Peter Parker tries to balance high school life with being a hero.", trailer: "https://www.youtube.com/watch?v=n9DwoQ7HWvI" },
-        { title: "Avengers: Infinity War", year: 2018, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "2 hours and 29 mins", genres: "Action, Sci-Fi", source: "Disney+", summary: "The Avengers face Thanos as he seeks all six Infinity Stones.", trailer: "https://www.youtube.com/watch?v=6ZfuNTqbHE8" },
-        { title: "Avengers: Endgame", year: 2019, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "3 hours and 1 min", genres: "Action, Sci-Fi", source: "Disney+", summary: "The surviving heroes attempt to undo the snap in a final stand.", trailer: "https://www.youtube.com/watch?v=TcMBFSGVi1c" },
-        { title: "Spider-Man: Far From Home", year: 2019, phase: "Phase Three", pCode: "p3", rating: "PG-13", runtime: "2 hours and 9 mins", genres: "Action, Adventure", source: "Disney+", summary: "Peter Parker deals with loss during a school trip to Europe.", trailer: "https://www.youtube.com/watch?v=Nt9L1jMCgnE" },
+    // Format Runtime: Minutes -> "X hours and Y mins"
+    function formatRuntime(minutes) {
+        if (!minutes) return "TBD";
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return `${h} ${h === 1 ? 'hour' : 'hours'} and ${m} mins`;
+    }
 
-        // PHASE 4
-        { title: "Black Widow", year: 2021, phase: "Phase Four", pCode: "p4", rating: "PG-13", runtime: "2 hours and 14 mins", genres: "Action, Adventure", source: "Disney+", summary: "Natasha Romanoff confronts the darker parts of her ledger.", trailer: "https://www.youtube.com/watch?v=ybji16u608U" },
-        { title: "Spider-Man: No Way Home", year: 2021, phase: "Phase Four", pCode: "p4", rating: "PG-13", runtime: "2 hours and 28 mins", genres: "Action, Fantasy", source: "Disney+", summary: "Multiversal villains arrive after a spell goes wrong.", trailer: "https://www.youtube.com/watch?v=JfVOs4VSpmA" },
-        { title: "Black Panther: Wakanda Forever", year: 2022, phase: "Phase Four", pCode: "p4", rating: "PG-13", runtime: "2 hours and 41 mins", genres: "Action, Drama", source: "Disney+", summary: "Wakanda fights to protect their nation from intervening world powers.", trailer: "https://www.youtube.com/watch?v=_Z3QKkl1WyM" },
+    async function syncWithTMDB() {
+        const btn = document.getElementById('updateBtn');
+        const spinner = document.getElementById('spinner');
+        btn.disabled = true;
+        spinner.style.display = "inline-block";
 
-        // PHASE 5
-        { title: "Deadpool & Wolverine", year: 2024, phase: "Phase Five", pCode: "p5", rating: "R", runtime: "2 hours and 8 mins", genres: "Action, Comedy", source: "Disney+", summary: "The merc with a mouth joins forces with a grumpy Wolverine.", trailer: "https://www.youtube.com/watch?v=73_1biulkYk" },
-        { title: "Thunderbolts*", year: 2025, phase: "Phase Five", pCode: "p5", rating: "PG-13", runtime: "2 hours and 10 mins", genres: "Action, Sci-Fi", source: "Theaters", summary: "A team of anti-heroes and reformed villains go on a secret mission.", trailer: "https://www.youtube.com/watch?v=v73uG_V6B-U" },
+        try {
+            // 1. Fetch the MCU Movie List
+            const listRes = await fetch(`https://api.themoviedb.org/3/list/${LIST_ID}?api_key=${API_KEY}`);
+            const listData = await listRes.json();
+            
+            const moviePromises = listData.items.map(async (item) => {
+                // 2. Deep Dive for Details (Runtime & Videos)
+                const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos`);
+                const d = await detailRes.json();
+                
+                // Find YouTube Trailer
+                const trailerObj = d.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                const trailerUrl = trailerObj ? `https://www.youtube.com/watch?v=${trailerObj.key}` : "No Trailer Found";
 
-        // PHASE 6
-        { title: "The Fantastic Four: First Steps", year: 2025, phase: "Phase Six", pCode: "p6", rating: "PG-13", runtime: "2 hours and 15 mins", genres: "Sci-Fi, Action", source: "Theaters", summary: "Marvel's first family debuts in a retro-futuristic world.", trailer: "https://www.youtube.com/watch?v=uG7V-TIDf8c" },
-        { title: "Avengers: Doomsday", year: 2026, phase: "Phase Six", pCode: "p6", rating: "TBD", runtime: "2 hours and 30 mins", genres: "Action, Sci-Fi", source: "Theaters", summary: "The heroes face a new threat in the form of Doctor Doom.", trailer: "https://www.youtube.com/watch?v=hAtO8G2m5m0" },
-        { title: "Avengers: Secret Wars", year: 2027, phase: "Phase Six", pCode: "p6", rating: "TBD", runtime: "2 hours and 45 mins", genres: "Action, Epic", source: "Theaters", summary: "The Multiverse Saga concludes with an unprecedented collision of worlds.", trailer: "https://www.youtube.com/watch?v=gT83E67Vv_Y" }
-    ];
+                return {
+                    title: d.title,
+                    year: d.release_date ? new Date(d.release_date).getFullYear() : "TBD",
+                    rating: d.adult ? "R" : "PG-13",
+                    runtime: formatRuntime(d.runtime),
+                    genres: d.genres.map(g => g.name).join(", "),
+                    source: "Theaters / Disney+",
+                    summary: d.overview,
+                    trailer: trailerUrl
+                };
+            });
 
-    const grid = document.getElementById('movieGrid');
-    const search = document.getElementById('movieSearch');
+            mcuData = await Promise.all(moviePromises);
+            mcuData.sort((a, b) => b.year - a.year); // Newest first
+            
+            render(mcuData);
+            document.getElementById('counterNote').innerHTML = `Verified: <strong>${mcuData.length} Projects</strong> synced from Global Database.`;
+            btn.innerHTML = "✅ SYNC COMPLETE";
+            setTimeout(() => { 
+                btn.innerHTML = "🔄 SYNC LIVE DATA"; 
+                btn.disabled = false;
+                spinner.style.display = "none";
+            }, 3000);
 
-    function display(list) {
+        } catch (error) {
+            console.error(error);
+            alert("Connection Error: Check API Key");
+            btn.disabled = false;
+            spinner.style.display = "none";
+        }
+    }
+
+    function render(list) {
+        const grid = document.getElementById('movieGrid');
         grid.innerHTML = '';
-        list.forEach((m, idx) => {
+        list.forEach((m) => {
             grid.innerHTML += `
-                <div class="col-md-6">
-                    <div class="movie-card p-3 ${m.pCode}" onclick="openDetail(${mcuData.indexOf(m)})">
-                        <span class="phase-tag bg-${m.pCode}">${m.phase}</span>
+                <div class="movie-card p-3" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
+                    <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">${m.title}</h5>
-                        <small class="text-secondary">${m.year} • ${m.runtime}</small>
+                        <span class="badge bg-dark">${m.year}</span>
                     </div>
                 </div>`;
         });
     }
 
-    function openDetail(i) {
-        const m = mcuData[i];
-        const layout = `Movie: ${m.title}\nYear: ${m.year}\nRating: ${m.rating}\nRuntime: ${m.runtime}\nGenres: ${m.genres}\nSource: ${m.source}\n\nSummary: ${m.summary}\nTrailer: ${m.trailer}`;
+    function openDetail(title) {
+        const m = mcuData.find(item => item.title === title);
+        const layout = `Movie: ${m.title}
+Year: ${m.year}
+Rating: ${m.rating}
+Runtime: ${m.runtime}
+Genres: ${m.genres}
+Source: ${m.source}
+
+Summary: ${m.summary}
+Trailer: ${m.trailer}`;
         
         document.getElementById('mTitle').innerText = m.title;
         document.getElementById('mDetails').innerText = layout;
@@ -132,13 +152,12 @@
         new bootstrap.Modal(document.getElementById('movieModal')).show();
     }
 
-    search.addEventListener('input', (e) => {
+    // Filter Logic
+    document.getElementById('movieSearch').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
-        display(mcuData.filter(m => m.title.toLowerCase().includes(val) || m.year.toString().includes(val) || m.phase.toLowerCase().includes(val)));
+        render(mcuData.filter(m => m.title.toLowerCase().includes(val) || m.year.toString().includes(val)));
     });
 
-    display(mcuData);
 </script>
-
 </body>
 </html>
