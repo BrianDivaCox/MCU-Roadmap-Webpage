@@ -3,36 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU Roadmap v2.0</title>
+    <title>MCU Roadmap v2.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #0b0c10; color: #c5c6c7; font-family: 'Segoe UI', sans-serif; padding: 40px 0; }
         .version-tag { position: absolute; top: 10px; left: 20px; color: #45a29e; font-size: 0.8rem; font-family: monospace; opacity: 0.6; }
         h1 { color: #66fcf1; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        #counterNote { color: #45a29e; font-size: 1.1rem; margin-bottom: 20px; font-weight: bold; }
-
+        
         .movie-card { 
             position: relative; background-color: #1f2833; background-size: cover; background-position: center;
             margin-bottom: 25px; cursor: pointer; transition: 0.3s; border-radius: 15px; 
             border-left: 10px solid #444; height: 260px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
         }
-        .card-overlay { background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 90%, rgba(0,0,0,0) 100%); padding: 20px; width: 100%; }
-        .movie-card:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(102, 252, 241, 0.4); }
+        .card-overlay { background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 90%, rgba(0,0,0,0) 100%); padding: 20px; width: 100%; }
         
+        /* Phase Color Coding */
+        .phase-1 { border-left-color: #00bcd4; } .phase-2 { border-left-color: #4caf50; } 
+        .phase-3 { border-left-color: #ffeb3b; } .phase-4 { border-left-color: #e91e63; }
         .phase-5 { border-left-color: #9c27b0; } .phase-6 { border-left-color: #009688; }
+
         .phase-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 900; color: #66fcf1; }
-        
         .modal-content { background-color: #0b0c10; border: 2px solid #45a29e; color: #fff; border-radius: 25px; }
         pre { background: #1c1d22; padding: 20px; border-radius: 15px; color: #66fcf1; white-space: pre-wrap; font-size: 0.85rem; }
+        .search-bar { background-color: #1c1d22 !important; color: white !important; border: 1px solid #45a29e !important; border-radius: 30px; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
-<div class="version-tag">STABLE_BUILD: v2.0_IRONCLAD</div>
-
+<div class="version-tag">STABLE_BUILD: v2.2_INFINITY_SAGA_ENABLED</div>
 <div class="container text-center">
     <h1>MCU Roadmap</h1>
-    <div id="counterNote">Status: Loading Local Archives...</div>
+    <input type="text" id="movieSearch" class="form-control search-bar" placeholder="Search by title, year, or phase (e.g., 'Phase 1')...">
     <div id="movieGrid" class="row text-start"></div>
 </div>
 
@@ -53,24 +54,59 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- LOCAL FAIL-SAFE ARCHIVE (Works even if API is dead) ---
-    const archiveData = [
-        { title: "Deadpool & Wolverine", year: 2024, runtime: "2 hours and 8 mins", phase: "Phase Five", poster: "https://image.tmdb.org/t/p/w780/yDHYv7QpIBtSSTJvYUMZ3Ls9Ysu.jpg", summary: "The ultimate team-up.", trailer: "https://www.youtube.com/watch?v=73_1biulkYk" },
-        { title: "Captain America: Brave New World", year: 2025, runtime: "1 hour and 58 mins", phase: "Phase Five", poster: "https://image.tmdb.org/t/p/w780/8Y99m69W9uSArvY6vAnp890F4Zf.jpg", summary: "Sam Wilson takes flight.", trailer: "https://www.youtube.com/watch?v=1pHDWnP6Ssc" },
-        { title: "The Fantastic Four: First Steps", year: 2025, runtime: "1 hour and 55 mins", phase: "Phase Five", poster: "https://image.tmdb.org/t/p/w780/7FInS0m829hU8w1u5e83Bq2686S.jpg", summary: "Marvel's First Family arrives.", trailer: "https://www.youtube.com/watch?v=kYI6N9eYfVs" },
-        { title: "Spider-Man: Brand New Day", year: 2026, runtime: "2 hours and 25 mins", phase: "Phase Six", poster: "https://image.tmdb.org/t/p/w780/mdf9A3vYm3YmYmYmYmYmYmYmYm.jpg", summary: "A new era for Peter Parker.", trailer: "https://www.youtube.com/watch?v=kYI6N9eYfVs" },
-        { title: "Avengers: Doomsday", year: 2026, runtime: "2 hours and 41 mins", phase: "Phase Six", poster: "https://image.tmdb.org/t/p/w780/6m9m9m9m9m9m9m9m9m9m9m.jpg", summary: "Robert Downey Jr. returns as Doom.", trailer: "https://www.youtube.com/watch?v=TU6o5WNXfx0" }
-    ];
+    const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a';
+    let mcuData = [];
 
-    let mcuData = [...archiveData]; // Start with archive
+    async function fetchFullTimeline() {
+        try {
+            // Fetch multiple pages to cover 2008 to 2027
+            const pages = [1, 2, 3, 4];
+            const fetchPromises = pages.map(p => 
+                fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_companies=420&sort_by=release_date.asc&page=${p}`).then(r => r.json())
+            );
 
-    function render() {
+            const results = await Promise.all(fetchPromises);
+            const rawList = results.flatMap(r => r.results);
+
+            const promises = rawList.map(async (item) => {
+                const dRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos`);
+                const d = await dRes.json();
+                
+                // Exclude documentaries and short films (< 60 mins)
+                if (d.runtime < 60 || d.title.includes("Assembled") || d.title.includes("Legends")) return null;
+
+                const date = d.release_date;
+                let phase = "Phase Six"; let pClass = "phase-6";
+                if (date < "2013-05-01") { phase = "Phase 1"; pClass = "phase-1"; }
+                else if (date < "2016-05-01") { phase = "Phase 2"; pClass = "phase-2"; }
+                else if (date < "2019-07-01") { phase = "Phase 3"; pClass = "phase-3"; }
+                else if (date < "2023-01-01") { phase = "Phase 4"; pClass = "phase-4"; }
+                else if (date < "2025-07-25") { phase = "Phase 5"; pClass = "phase-5"; }
+
+                return {
+                    title: d.title,
+                    year: new Date(date).getFullYear(),
+                    runtime: `${Math.floor(d.runtime/60)} hours and ${d.runtime%60} mins`,
+                    phase: phase,
+                    pClass: pClass,
+                    poster: `https://image.tmdb.org/t/p/w780${d.backdrop_path}`,
+                    summary: d.overview,
+                    trailer: `https://www.youtube.com/watch?v=${d.videos?.results[0]?.key || ''}`
+                };
+            });
+
+            mcuData = (await Promise.all(promises)).filter(x => x !== null);
+            render(mcuData);
+        } catch (e) { console.error("Sync Error", e); }
+    }
+
+    function render(list) {
         const grid = document.getElementById('movieGrid');
         grid.innerHTML = '';
-        mcuData.forEach((m) => {
+        list.forEach((m) => {
             grid.innerHTML += `
                 <div class="col-md-6 col-lg-4">
-                    <div class="movie-card" style="background-image: url('${m.poster}')" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
+                    <div class="movie-card ${m.pClass}" style="background-image: url('${m.poster}')" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
                         <div class="card-overlay">
                             <div class="phase-label">${m.phase}</div>
                             <h4 class="mb-0 text-white">${m.title}</h4>
@@ -79,39 +115,6 @@
                     </div>
                 </div>`;
         });
-    }
-
-    async function tryLiveUpdate() {
-        const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a';
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_companies=420&sort_by=release_date.desc`);
-            const data = await res.json();
-            if (data.results && data.results.length > 0) {
-                // If API works, we process it and update the screen
-                const promises = data.results.slice(0, 10).map(async (item) => {
-                    const dRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos`);
-                    const d = await dRes.json();
-                    if (d.runtime < 60 || d.title.includes("Assembled")) return null;
-                    return {
-                        title: d.title,
-                        year: new Date(d.release_date).getFullYear(),
-                        runtime: `${Math.floor(d.runtime/60)} hours and ${d.runtime%60} mins`,
-                        phase: d.release_date > "2025-05-01" ? "Phase Six" : "Phase Five",
-                        poster: `https://image.tmdb.org/t/p/w780${d.backdrop_path}`,
-                        summary: d.overview,
-                        trailer: `https://www.youtube.com/watch?v=${d.videos?.results[0]?.key || ''}`
-                    };
-                });
-                const live = (await Promise.all(promises)).filter(x => x !== null);
-                if (live.length > 0) {
-                    mcuData = live;
-                    document.getElementById('counterNote').innerText = "Status: Live API Connected";
-                    render();
-                }
-            }
-        } catch (e) {
-            document.getElementById('counterNote').innerText = "Status: Using Offline Archive";
-        }
     }
 
     function openDetail(title) {
@@ -123,10 +126,13 @@
         new bootstrap.Modal(document.getElementById('movieModal')).show();
     }
 
-    // Initial instant render from Archive
-    render();
-    // Then try to get fresh data
-    tryLiveUpdate();
+    document.getElementById('movieSearch').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = mcuData.filter(m => m.title.toLowerCase().includes(val) || m.phase.toLowerCase().includes(val) || m.year.toString().includes(val));
+        render(filtered);
+    });
+
+    window.onload = fetchFullTimeline;
 </script>
 </body>
 </html>
