@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU Roadmap - Card Hub</title>
+    <title>MCU Roadmap - Command Center</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #0b0c10; color: #c5c6c7; font-family: 'Segoe UI', sans-serif; padding: 40px 0; }
-        h1 { color: #66fcf1; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        h1 { color: #66fcf1; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(102, 252, 241, 0.5); }
         #counterNote { color: #45a29e; font-size: 1.1rem; margin-bottom: 20px; font-weight: bold; }
 
         .movie-card { 
@@ -29,54 +29,62 @@
         }
         
         .card-overlay {
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0) 100%);
             padding: 20px;
             width: 100%;
         }
 
-        .movie-card:hover { transform: scale(1.03); box-shadow: 0 15px 30px rgba(102, 252, 241, 0.3); }
+        .movie-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(102, 252, 241, 0.3); }
         
         /* Phase Colors */
         .phase-1 { border-left-color: #00bcd4; } .phase-2 { border-left-color: #4caf50; } 
         .phase-3 { border-left-color: #ffeb3b; } .phase-4 { border-left-color: #e91e63; }
         .phase-5 { border-left-color: #9c27b0; } .phase-6 { border-left-color: #009688; }
 
-        .phase-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 900; color: #66fcf1; margin-bottom: 5px; }
+        .phase-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 900; color: #66fcf1; }
+        .countdown-badge { position: absolute; top: 15px; right: 15px; background: rgba(240, 19, 30, 0.9); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 0 10px rgba(240, 19, 30, 0.5); }
+        .type-badge { font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; margin-left: 5px; }
         
         .modal-content { background-color: #1c1d22; border: 1px solid #45a29e; color: #fff; border-radius: 20px; }
         pre { background: #000; padding: 25px; border-radius: 12px; color: #00ffcc; white-space: pre-wrap; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 0.9rem; }
         .search-bar { background-color: #1c1d22 !important; color: white !important; border: 1px solid #45a29e !important; border-radius: 30px; }
-        #loader { display: none; margin: 20px auto; }
+        .filter-btn { border-radius: 20px; font-weight: bold; transition: 0.3s; }
     </style>
 </head>
 <body>
 
 <div class="container text-center">
-    <h1>MCU Roadmap</h1>
-    <div id="counterNote">Status: System Offline</div>
+    <h1>MCU Roadmap 2026</h1>
+    <div id="counterNote">Accessing Multiverse Archives...</div>
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8 d-flex gap-2">
-            <input type="text" id="movieSearch" class="form-control search-bar" placeholder="Search roadmap...">
-            <button id="updateBtn" class="btn btn-info fw-bold px-4" onclick="syncWithTMDB()">RETRY SYNC</button>
+    <div class="row justify-content-center mb-3">
+        <div class="col-md-8">
+            <input type="text" id="movieSearch" class="form-control search-bar" placeholder="Search Marvel Universe...">
         </div>
     </div>
 
-    <div class="spinner-border text-info" role="status" id="loader"></div>
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-5">
+        <button class="btn btn-outline-info filter-btn" onclick="filterData('all')">ALL PROJECTS</button>
+        <button class="btn btn-outline-info filter-btn" onclick="filterData('Movie')">THEATRICAL FILMS</button>
+        <button class="btn btn-outline-info filter-btn" onclick="filterData('Animation')">CARTOONS / ANIME</button>
+        <button class="btn btn-info filter-btn" onclick="syncWithTMDB()">⚡ SYNC ARCHIVES</button>
+    </div>
+
+    <div class="spinner-border text-info mb-4" role="status" id="loader" style="display:none;"></div>
     <div id="movieGrid" class="row text-start"></div>
 </div>
 
 <div class="modal fade" id="movieModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0">
+            <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title" id="mTitle"></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-0">
+            <div class="modal-body">
                 <pre id="mDetails"></pre>
-                <div class="text-center mt-3 mb-3">
-                    <a id="mLink" href="#" target="_blank" class="btn btn-danger px-5 rounded-pill">Watch Official Trailer</a>
+                <div class="text-center mt-3 mb-2">
+                    <a id="mLink" href="#" target="_blank" class="btn btn-danger px-5 rounded-pill fw-bold">WATCH TRAILER</a>
                 </div>
             </div>
         </div>
@@ -86,75 +94,81 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a'; 
-    const MARVEL_STUDIOS_ID = '420'; // Official Marvel Studios ID
+    const MARVEL_STUDIOS_ID = '420'; 
     let mcuData = [];
 
     async function syncWithTMDB() {
-        const btn = document.getElementById('updateBtn');
         const loader = document.getElementById('loader');
         const counterNote = document.getElementById('counterNote');
-        
-        btn.disabled = true;
-        loader.style.display = "block";
-        counterNote.innerText = "Discovering Marvel Archives...";
+        loader.style.display = "inline-block";
+        counterNote.innerText = "Scanning Chronology...";
 
         try {
-            // We fetch multiple pages to ensure we get all 40+ movies
-            const pages = [1, 2, 3];
-            let allMovies = [];
-
-            for (let page of pages) {
-                const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_companies=${MARVEL_STUDIOS_ID}&page=${page}&sort_by=release_date.asc`);
+            let allItems = [];
+            // Increased to 5 pages to capture all deep Phase 6 announcements
+            for (let i = 1; i <= 5; i++) {
+                const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_companies=${MARVEL_STUDIOS_ID}&page=${i}&sort_by=release_date.asc`);
                 const data = await res.json();
-                if (data.results) allMovies = [...allMovies, ...data.results];
+                if (data.results) allItems = [...allItems, ...data.results];
             }
 
-            // Filter out non-MCU things (like documentaries) if needed
-            // For now, we process them all
-            const moviePromises = allMovies.map(async (item) => {
+            const today = new Date();
+
+            const promises = allItems.map(async (item) => {
                 const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos`);
                 const d = await detailRes.json();
                 
+                const release = d.release_date ? new Date(d.release_date) : null;
+                
+                // Phase Logic
                 let phase = "Phase Six"; let pCode = "phase-6";
-                const release = d.release_date;
-                if (release < "2013-01-01") { phase = "Phase One"; pCode = "phase-1"; }
-                else if (release < "2016-01-01") { phase = "Phase Two"; pCode = "phase-2"; }
-                else if (release < "2020-01-01") { phase = "Phase Three"; pCode = "phase-3"; }
-                else if (release < "2023-01-01") { phase = "Phase Four"; pCode = "phase-4"; }
-                else if (release < "2025-05-01") { phase = "Phase Five"; pCode = "phase-5"; }
+                const dateStr = d.release_date;
+                if (dateStr < "2013-01-01") { phase = "Phase One"; pCode = "phase-1"; }
+                else if (dateStr < "2016-01-01") { phase = "Phase Two"; pCode = "phase-2"; }
+                else if (dateStr < "2020-01-01") { phase = "Phase Three"; pCode = "phase-3"; }
+                else if (dateStr < "2023-01-01") { phase = "Phase Four"; pCode = "phase-4"; }
+                else if (dateStr < "2025-05-01") { phase = "Phase Five"; pCode = "phase-5"; }
 
+                // Countdown Logic
+                let countdown = "";
+                if (release && release > today) {
+                    const diff = release - today;
+                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                    countdown = `${days} DAYS LEFT`;
+                }
+
+                const isAnimation = d.genres.some(g => g.name === 'Animation');
                 const trailer = d.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-                const poster = d.backdrop_path ? `https://image.tmdb.org/t/p/w500${d.backdrop_path}` : '';
+                const poster = d.backdrop_path ? `https://image.tmdb.org/t/p/w780${d.backdrop_path}` : '';
 
                 return {
                     title: d.title,
-                    year: d.release_date ? new Date(d.release_date).getFullYear() : "TBD",
+                    year: release ? release.getFullYear() : "TBD",
                     rating: "PG-13",
-                    runtime: `${Math.floor(d.runtime/60)} hours and ${d.runtime%60} mins`,
+                    runtime: d.runtime ? `${Math.floor(d.runtime/60)} hours and ${d.runtime%60} mins` : "TBD",
                     genres: d.genres.map(g => g.name).join(", "),
-                    source: "Disney+",
+                    source: isAnimation ? "Disney+ (Animation)" : "Theaters / Disney+",
                     summary: d.overview,
                     phase: phase,
                     pCode: pCode,
                     poster: poster,
+                    type: isAnimation ? 'Animation' : 'Movie',
+                    countdown: countdown,
                     trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : "N/A"
                 };
             });
 
-            mcuData = await Promise.all(moviePromises);
-            
-            // Remove duplicates (sometimes discover pulls double)
+            mcuData = await Promise.all(promises);
+            // Clean duplicates
             mcuData = mcuData.filter((v,i,a)=>a.findIndex(t=>(t.title === v.title))===i);
-
+            // Sort by Date
             mcuData.sort((a, b) => (a.year === "TBD" ? 1 : b.year === "TBD" ? -1 : a.year - b.year));
             
             render(mcuData);
-            btn.disabled = false;
             loader.style.display = "none";
         } catch (err) {
             console.error(err);
-            counterNote.innerHTML = `<span class="text-danger">Sync Error: Check Connection</span>`;
-            btn.disabled = false;
+            counterNote.innerText = "Error: System Connection Failed.";
             loader.style.display = "none";
         }
     }
@@ -163,20 +177,27 @@
         const grid = document.getElementById('movieGrid');
         const counter = document.getElementById('counterNote');
         grid.innerHTML = '';
-        counter.innerHTML = `DATABASE ONLINE: <strong>${list.length} PROJECTS FOUND</strong>`;
+        counter.innerHTML = `DATABASE ONLINE: <strong>${list.length} PROJECTS TRACKED</strong>`;
 
         list.forEach((m) => {
+            const countTag = m.countdown ? `<div class="countdown-badge">🚀 ${m.countdown}</div>` : "";
             grid.innerHTML += `
                 <div class="col-md-6 col-lg-4">
                     <div class="movie-card ${m.pCode}" style="background-image: url('${m.poster}')" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
+                        ${countTag}
                         <div class="card-overlay">
-                            <div class="phase-label">${m.phase}</div>
+                            <div class="phase-label">${m.phase} <span class="type-badge">${m.type}</span></div>
                             <h4 class="mb-0 text-white">${m.title}</h4>
                             <div class="text-info small">${m.year}</div>
                         </div>
                     </div>
                 </div>`;
         });
+    }
+
+    function filterData(category) {
+        if (category === 'all') render(mcuData);
+        else render(mcuData.filter(m => m.type === category));
     }
 
     function openDetail(title) {
