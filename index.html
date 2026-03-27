@@ -3,40 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU Live Database</title>
+    <title>MCU Roadmap - Card Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0b0c10; color: #c5c6c7; font-family: 'Segoe UI', sans-serif; padding: 40px 0; }
-        .container { max-width: 900px; }
-        .header-section { border-bottom: 2px solid #1f2833; margin-bottom: 30px; padding-bottom: 20px; }
-        h1 { color: #66fcf1; font-weight: 800; text-transform: uppercase; margin: 0; }
+        body { background-color: #0f1014; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 40px 0; }
+        .container { max-width: 1000px; }
         
-        .sync-panel { background: #1f2833; padding: 15px; border-radius: 12px; margin-bottom: 30px; }
-        .movie-card { background: #1f2833; border: none; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border-radius: 8px; border-left: 5px solid #66fcf1; }
-        .movie-card:hover { transform: translateX(10px); background: #45a29e; color: #0b0c10; }
+        h1 { color: #f0131e; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        #counterNote { color: #888; font-size: 1rem; margin-bottom: 30px; }
+
+        /* Search & Sync Bar */
+        .control-panel { background: #1c1d22; padding: 20px; border-radius: 15px; margin-bottom: 40px; border: 1px solid #333; }
+        .search-bar { background-color: #0f1014; border: 1px solid #444; color: #fff; border-radius: 8px; }
+        .search-bar:focus { background-color: #16171d; color: #fff; border-color: #f0131e; box-shadow: none; }
+
+        /* Card Styling */
+        .movie-card { 
+            background: #1c1d22; 
+            border: none; 
+            margin-bottom: 20px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            border-radius: 12px; 
+            border-left: 8px solid #444; 
+            height: 100%;
+        }
+        .movie-card:hover { transform: translateY(-5px); background: #25262c; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         
-        pre { background: #000; padding: 20px; border-radius: 10px; color: #66fcf1; white-space: pre-wrap; border: 1px solid #45a29e; text-align: left; }
-        .modal-content { background-color: #0b0c10; color: #fff; border: 1px solid #45a29e; border-radius: 15px; }
-        .loading-spinner { display: none; margin-right: 10px; }
+        /* Phase Colors from your Image */
+        .phase-1 { border-left-color: #00bcd4; } /* Blue */
+        .phase-2 { border-left-color: #4caf50; } /* Green */
+        .phase-3 { border-left-color: #ffeb3b; } /* Yellow */
+        .phase-4 { border-left-color: #e91e63; } /* Pink */
+        .phase-5 { border-left-color: #9c27b0; } /* Purple */
+        .phase-6 { border-left-color: #009688; } /* Teal */
+
+        .phase-tag { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; color: #aaa; margin-bottom: 5px; display: block; }
+        
+        /* Modal Styling */
+        .modal-content { background-color: #1c1d22; border: 1px solid #444; color: #fff; border-radius: 20px; }
+        pre { 
+            background: #000; 
+            padding: 25px; 
+            border-radius: 12px; 
+            color: #00ffcc; 
+            border: 1px solid #333; 
+            white-space: pre-wrap; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
 
 <div class="container text-center">
-    <div class="header-section">
-        <h1>MCU Intelligence Hub</h1>
-        <p id="counterNote" class="mt-2">Connecting to Neural Link...</p>
+    <h1>MCU Roadmap</h1>
+    <div id="counterNote">Initializing Database...</div>
+
+    <div class="control-panel d-flex flex-column flex-md-row gap-3">
+        <input type="text" id="movieSearch" class="form-control form-control-lg search-bar" placeholder="Search titles, years, or phases...">
+        <button id="updateBtn" class="btn btn-danger fw-bold px-4" onclick="syncWithTMDB()">UPDATE DATABASE</button>
     </div>
 
-    <div class="sync-panel d-flex justify-content-between align-items-center">
-        <input type="text" id="movieSearch" class="form-control bg-dark text-white border-0 w-50" placeholder="Filter roadmap...">
-        <button id="updateBtn" class="btn btn-info fw-bold" onclick="syncWithTMDB()">
-            <span class="spinner-border spinner-border-sm loading-spinner" id="spinner"></span>
-            🔄 SYNC LIVE DATA
-        </button>
-    </div>
-
-    <div id="movieGrid" class="text-start"></div>
+    <div id="movieGrid" class="row text-start">
+        </div>
 </div>
 
 <div class="modal fade" id="movieModal" tabindex="-1">
@@ -46,9 +77,11 @@
                 <h5 class="modal-title" id="mTitle"></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-0 text-center">
+            <div class="modal-body pt-0">
                 <pre id="mDetails"></pre>
-                <a id="mLink" href="#" target="_blank" class="btn btn-outline-info mt-3 px-5">Watch on YouTube</a>
+                <div class="text-center mt-3 mb-3">
+                    <a id="mLink" href="#" target="_blank" class="btn btn-primary px-5 rounded-pill">Watch Official Trailer</a>
+                </div>
             </div>
         </div>
     </div>
@@ -56,12 +89,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a'; // PASTE YOUR KEY HERE
-    const LIST_ID = '8254729'; // Dynamic MCU List ID (or use 86263 for collection)
+    const API_KEY = 'ab209bae2d49ee12d5a1f8601c11ef6a'; // <--- ADD YOUR KEY HERE
+    const LIST_ID = '8254729'; // Comprehensive MCU List
     let mcuData = [];
 
-    // Format Runtime: Minutes -> "X hours and Y mins"
-    function formatRuntime(minutes) {
+    // Helper for your specific layout requirements
+    function formatTime(minutes) {
         if (!minutes) return "TBD";
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
@@ -70,65 +103,66 @@
 
     async function syncWithTMDB() {
         const btn = document.getElementById('updateBtn');
-        const spinner = document.getElementById('spinner');
+        btn.innerText = "SYNCING...";
         btn.disabled = true;
-        spinner.style.display = "inline-block";
 
         try {
-            // 1. Fetch the MCU Movie List
             const listRes = await fetch(`https://api.themoviedb.org/3/list/${LIST_ID}?api_key=${API_KEY}`);
             const listData = await listRes.json();
             
             const moviePromises = listData.items.map(async (item) => {
-                // 2. Deep Dive for Details (Runtime & Videos)
-                const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos`);
+                const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${API_KEY}&append_to_response=videos,release_dates`);
                 const d = await detailRes.json();
                 
-                // Find YouTube Trailer
-                const trailerObj = d.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-                const trailerUrl = trailerObj ? `https://www.youtube.com/watch?v=${trailerObj.key}` : "No Trailer Found";
+                // Logic to determine Phase based on date
+                let phase = "Phase Six";
+                let pCode = "phase-6";
+                if (d.release_date < "2013-01-01") { phase = "Phase One"; pCode = "phase-1"; }
+                else if (d.release_date < "2016-01-01") { phase = "Phase Two"; pCode = "phase-2"; }
+                else if (d.release_date < "2020-01-01") { phase = "Phase Three"; pCode = "phase-3"; }
+                else if (d.release_date < "2023-01-01") { phase = "Phase Four"; pCode = "phase-4"; }
+                else if (d.release_date < "2025-05-01") { phase = "Phase Five"; pCode = "phase-5"; }
+
+                const trailer = d.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
 
                 return {
                     title: d.title,
                     year: d.release_date ? new Date(d.release_date).getFullYear() : "TBD",
-                    rating: d.adult ? "R" : "PG-13",
-                    runtime: formatRuntime(d.runtime),
+                    rating: "PG-13", // Simplification
+                    runtime: formatTime(d.runtime),
                     genres: d.genres.map(g => g.name).join(", "),
-                    source: "Theaters / Disney+",
+                    source: "Disney+ / Theaters",
                     summary: d.overview,
-                    trailer: trailerUrl
+                    phase: phase,
+                    pCode: pCode,
+                    trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : "N/A"
                 };
             });
 
             mcuData = await Promise.all(moviePromises);
-            mcuData.sort((a, b) => b.year - a.year); // Newest first
-            
+            mcuData.sort((a, b) => b.year - a.year); // Newest first for cards
             render(mcuData);
-            document.getElementById('counterNote').innerHTML = `Verified: <strong>${mcuData.length} Projects</strong> synced from Global Database.`;
-            btn.innerHTML = "✅ SYNC COMPLETE";
-            setTimeout(() => { 
-                btn.innerHTML = "🔄 SYNC LIVE DATA"; 
-                btn.disabled = false;
-                spinner.style.display = "none";
-            }, 3000);
-
-        } catch (error) {
-            console.error(error);
-            alert("Connection Error: Check API Key");
+            btn.innerText = "UPDATE DATABASE";
             btn.disabled = false;
-            spinner.style.display = "none";
+        } catch (error) {
+            btn.innerText = "ERROR - CHECK API";
+            btn.disabled = false;
         }
     }
 
     function render(list) {
         const grid = document.getElementById('movieGrid');
+        const counter = document.getElementById('counterNote');
         grid.innerHTML = '';
+        counter.innerHTML = `There are currently <strong>${list.length} movies</strong> tracked in the MCU database.`;
+
         list.forEach((m) => {
             grid.innerHTML += `
-                <div class="movie-card p-3" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">${m.title}</h5>
-                        <span class="badge bg-dark">${m.year}</span>
+                <div class="col-md-6 col-lg-4">
+                    <div class="movie-card p-4 ${m.pCode}" onclick="openDetail('${m.title.replace(/'/g, "\\'")}')">
+                        <span class="phase-tag">${m.phase}</span>
+                        <h4 class="mb-1">${m.title}</h4>
+                        <p class="text-secondary mb-0">${m.year}</p>
                     </div>
                 </div>`;
         });
@@ -152,12 +186,13 @@ Trailer: ${m.trailer}`;
         new bootstrap.Modal(document.getElementById('movieModal')).show();
     }
 
-    // Filter Logic
     document.getElementById('movieSearch').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
-        render(mcuData.filter(m => m.title.toLowerCase().includes(val) || m.year.toString().includes(val)));
+        render(mcuData.filter(m => m.title.toLowerCase().includes(val) || m.year.toString().includes(val) || m.phase.toLowerCase().includes(val)));
     });
 
+    // Auto-load on start
+    syncWithTMDB();
 </script>
 </body>
 </html>
